@@ -62,7 +62,6 @@ def get_newest_valid_event():
   newest_valid_event_timestamp = 0
 
   for event in dynamodb.scan(TableName=DYNAMODB_TABLE)['Items']:
-    logger.debug(event)
     timestamp = get_event_timestamp(event)
 
     if not is_event_accurate_enough(event) or not is_event_new_enough(event, timestamp):
@@ -78,13 +77,11 @@ def get_newest_valid_event():
 def is_event_accurate_enough(event):
   event_accuracy = float(event['event_accuracy_m']['S'])
   if event_accuracy > VALID_EVENT_MAX_ACCURACY_IN_METRES:
-    logger.debug('Event ' + event['eventId']['S'] + ' is not accurate enough')
     return False
   return True
 
 def is_event_new_enough(event, timestamp):
   if timestamp < time() - VALID_EVENT_MAX_AGE_IN_SECONDS:
-    logger.debug('Event ' + event['eventId']['S'] + ' is too old')
     return False
   return True
 
@@ -105,11 +102,9 @@ def get_event_timestamp(event):
   if ':' == event_date[-3:-2]:
     event_date = event_date[:-3] + event_date[-2:]
 
-  timestamp = datetime.strptime(event_date, event_date_format).timestamp()
-  return timestamp
+  return datetime.strptime(event_date, event_date_format).timestamp()
 
 def get_speech_text_response():
-
   now = datetime.today().astimezone(timezone(TIMEZONE))
 
   # Return early if it's not a valid day of the week or time of day.
@@ -260,7 +255,7 @@ class SessionEndedRequestHandler(dispatch_components.AbstractRequestHandler):
   def handle(self, handler_input):
     # type: (HandlerInput) -> Response
     logger.info("In SessionEndedRequestHandler")
-    logger.info("Session end: " + json_encode(handler_input.request_envelope.request.reason))
+    logger.debug("Session end: " + json_encode(handler_input.request_envelope.request.reason))
     return handler_input.response_builder.response
 
 class CatchAllExceptionHandler(dispatch_components.AbstractExceptionHandler):
