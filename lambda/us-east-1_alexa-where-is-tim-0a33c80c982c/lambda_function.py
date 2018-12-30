@@ -4,6 +4,7 @@ Depends on the particular structure of geo events placed by the Proximity Events
 
 @see https://alexa-skills-kit-python-sdk.readthedocs.io/en/latest/api/core.html
 @see https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/dynamodb.html
+@author Tim Malone <tim@timmalone.id.au>
 """
 
 import random
@@ -99,7 +100,7 @@ def get_event_timestamp(event):
   event_date = event['event_date']['S']
   event_date_format = '%Y-%m-%dT%H:%M:%S%z'
 
-  # Since event_dates come through with eg. ...+11:00 and %z expects +1100, we remove the colon.
+  # Since event_date comes through with eg. ...+11:00 and %z expects +1100, we remove the colon.
   # @see https://stackoverflow.com/questions/30999230/parsing-timezone-with-colon
   if ':' == event_date[-3:-2]:
     event_date = event_date[:-3] + event_date[-2:]
@@ -111,9 +112,11 @@ def get_speech_text_response():
 
   now = datetime.today().astimezone(timezone(TIMEZONE))
 
+  # Return early if it's not a valid day of the week or time of day.
   speech = maybe_get_invalid_date_response(now)
   if speech is not False: return speech
 
+  # Return early if there's no new enough event. Too old, we can't trust it's current.
   event = get_newest_valid_event()
   logger.info(event)
   if event is None: return "I'm sorry, I'm not sure where he is at the moment."
@@ -125,11 +128,11 @@ def get_speech_text_response():
   distance_from_home = distance.geodesic(home_coords, current_coords)
   distance_from_work = distance.geodesic(work_coords, current_coords)
 
+  # We'll generally read distances in kilometres, unless it's less than .95 of a kilometre.
   if distance_from_home.m < 950:
     readable_distance_from_home = str(round(distance_from_home.m)) + 'm'
   else:
     readable_distance_from_home = str(round(distance_from_home.km)) + 'km'
-
   if distance_from_work.m < 950:
     readable_distance_from_work = str(round(distance_from_work.m)) + 'm'
   else:
@@ -197,7 +200,24 @@ def get_speech_text_response():
   speech += " (in " + suburb + ")."
   return speech
 
-# Built-in Intent Handlers.
+############################
+# Assorted helper functions
+############################
+
+def json_encode(object):
+  """
+  Passes custom JSON encoding to an alternative method. Mainly used for compacting log output.
+  @see http://jsonpickle.github.io/api.html#customizing-json-output
+  """
+  return jsonpickle.pickler.encode(object, unpicklable=False)
+
+############################
+# Built-in intent handlers
+# The following blocks of code derive from alexa/skill-sample-python-fact and are ASL licensed.
+# @see ../../LICENSE
+# @see https://github.com/alexa/skill-sample-python-fact/blob/master/lambda/py/lambda_function.py
+############################
+
 class GetTimLocationHandler(dispatch_components.AbstractRequestHandler):
   """Handler for Skill Launch and GetTimLocation Intent."""
 
@@ -285,12 +305,3 @@ skill.add_global_response_interceptor(ResponseLogger())
 
 # Handler name that is used on AWS lambda.
 lambda_handler = skill.lambda_handler()
-
-# Assorted helper functions.
-
-def json_encode(object):
-  """
-  Passes custom JSON encoding to an alternative method. Mainly used for compacting log output.
-  @see http://jsonpickle.github.io/api.html#customizing-json-output
-  """
-  return jsonpickle.pickler.encode(object, unpicklable=False)

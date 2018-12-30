@@ -6,7 +6,7 @@ It runs as a Lambda function on the Python 3.7 runtime, and is powered by the [A
 
 ## Why?
 
-Just as an excuse to learn both Alexa skills and Python, really! And also because I had some of the infrastructure set up already from [previous projects](https://github.com/tdmalone/proximity-events-webhook-parser).
+Just as an excuse to learn both Alexa skills and Python, really! And also because I had some of the infrastructure already set up from [previous projects](https://github.com/tdmalone/proximity-events-webhook-parser).
 
 ## Can I use this?
 
@@ -14,12 +14,17 @@ Sure! You likely won't be able to use it _as is_ as it's very custom made, but f
 
 You should know that not all of the required infrastructure is contained within this repo:
 
-- Settings applied to the Lambda function are currently done manually (I'll add Terraform configuration for this at some stage)
-- The database structure assumes a DynamoDB backend, populated by geolocation events coming from the [Proximity Events](http://proximityevents.com/) iPhone app. These are:
-  - parsed by a [custom webhook parser](https://github.com/tdmalone/proximity-events-webhook-parser) and forwarded to an SNS topic,
-  - then inserted into the DynamoDB table by another custom Lambda function, which does a bunch of other custom automation things based on my location (this function is currently private, but I'll make it public when I've fully separated personal configuration from the code).
+- **The Lambda function** was originally set up from the [Alexa Skills Kit (ASK) Sample Fact Skill [Python 3.6]](https://serverlessrepo.aws.amazon.com/applications/arn:aws:serverlessrepo:us-east-1:173334852312:applications~alexa-skills-kit-python36-factskill) ([GitHub repo](https://github.com/alexa/skill-sample-python-fact)) via the [AWS Serverless Application Repository](https://aws.amazon.com/serverless/serverlessrepo/), with many changes made since then.
+  - A number of settings have been manually changed on the Lambda function (I'll add Terraform configuration for this at some stage, since I prefer it over CloudFormation and even with [drift detection](https://aws.amazon.com/blogs/aws/new-cloudformation-drift-detection/), CloudFormation can't tell that I've messed with it)
+  - Note also that because the original code was licensed under the Amazon Software License, a portion of it still is (see [LICENSE](LICENSE) for more details)
+
+- **The database structure** assumes a DynamoDB backend, populated by geolocation events coming from the [Proximity Events](http://proximityevents.com/) iPhone app.
+  - These are parsed by a [custom webhook parser](https://github.com/tdmalone/proximity-events-webhook-parser) and forwarded to an SNS topic.
+  - They're then inserted into a DynamoDB table by another custom Lambda function, which does a bunch of other custom automation things based on my location (this function is currently private, but I'll make it public when I've fully separated personal configuration from the code).
 
 For ease-of-use, you might also want to install the [ASK CLI](https://developer.amazon.com/docs/smapi/quick-start-alexa-skills-kit-command-line-interface.html).
+
+The ASK Sample Fact Skill for Python also provides some good [getting started instructions](https://github.com/alexa/skill-sample-python-fact/blob/master/instructions/1-voice-user-interface.md).
 
 ## Questions?
 
@@ -27,4 +32,4 @@ If you want to implement something similar and have questions - or if you've had
 
 ## License
 
-[MIT](LICENSE).
+[MIT and ASL](LICENSE).
