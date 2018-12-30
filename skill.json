@@ -1,0 +1,31 @@
+{
+  "manifest": {
+    "apis": {
+      "custom": {
+        "endpoint": {
+          "uri": "alexa-where-is-tim-0a33c80c982c",
+          "sourceDir": "lambda/us-east-1_alexa-where-is-tim-0a33c80c982c"
+        },
+        "interfaces": []
+      }
+    },
+    "manifestVersion": "1.0",
+    "permissions": [],
+    "privacyAndCompliance": {
+      "locales": {
+        "en-AU": {}
+      }
+    },
+    "publishingInformation": {
+      "locales": {
+        "en-AU": {
+          "name": "Where Is Tim?",
+          "examplePhrases": [],
+          "keywords": []
+        }
+      },
+      "isAvailableWorldwide": true,
+      "distributionCountries": []
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "tim",
+      "intents": [
+        {
+          "name": "AMAZON.FallbackIntent",
+          "samples": []
+        },
+        {
+          "name": "GetTimLocation",
+          "slots": [],
+          "samples": [
+            "whether he's on his way",
+            "if he's on his way",
+            "whether he's left",
+            "if he's left",
+            "if he's left work",
+            "if he's left work yet",
+            "where he is",
+            "when he's home",
+            "when he's coming",
+            "when he's coming home",
+            "how far away he is"
+          ]
+        }
+      ],
+      "types": []
+    }
+  }
+}
