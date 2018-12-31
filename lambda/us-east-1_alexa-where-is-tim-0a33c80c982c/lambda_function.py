@@ -15,7 +15,6 @@ from os import getenv
 from time import time
 from pytz import timezone
 from boto3 import client
-from geopy import distance
 from datetime import datetime
 from ask_sdk_core import skill_builder, dispatch_components, utils
 
@@ -26,8 +25,6 @@ FALLBACK_REPROMPT = getenv('FALLBACK_REPROMPT')
 TIMEZONE = getenv('TIMEZONE')
 VALID_EVENT_MAX_AGE_IN_SECONDS = float(getenv('VALID_EVENT_MAX_AGE_IN_SECONDS'))
 VALID_EVENT_MAX_ACCURACY_IN_METRES = float(getenv('VALID_EVENT_MAX_ACCURACY_IN_METRES'))
-HOME_LATLNG = getenv('HOME_LATLNG')
-WORK_LATLNG = getenv('WORK_LATLNG')
 
 skill = skill_builder.SkillBuilder()
 logger = logging.getLogger(__name__)
@@ -116,29 +113,22 @@ def get_speech_text_response():
   logger.info(event)
   if event is None: return "I'm sorry, I'm not sure where he is at the moment."
 
-  # Determine the current proximity to both work and home.
-  home_coords = HOME_LATLNG.split(',')
-  work_coords = WORK_LATLNG.split(',')
-  current_coords = (event['event_latitude']['S'], event['event_longitude']['S'])
-  distance_from_home = distance.geodesic(home_coords, current_coords)
-  distance_from_work = distance.geodesic(work_coords, current_coords)
-
   # We'll generally read distances in kilometres, unless it's less than .95 of a kilometre.
-  if distance_from_home.m < 950:
-    readable_distance_from_home = str(round(distance_from_home.m)) + 'm'
+  if event['distance_from_home'] < 950:
+    readable_distance_from_home = str(round(event['distance_from_home'])) + 'm'
   else:
-    readable_distance_from_home = str(round(distance_from_home.km)) + 'km'
-  if distance_from_work.m < 950:
-    readable_distance_from_work = str(round(distance_from_work.m)) + 'm'
+    readable_distance_from_home = str(round(event['distance_from_home'] / 1000)) + 'km'
+  if event['distance_from_work'] < 950:
+    readable_distance_from_work = str(round(event['distance_from_work'])) + 'm'
   else:
-    readable_distance_from_work = str(round(distance_from_work.km)) + 'km'
+    readable_distance_from_work = str(round(event['distance_from_work'] / 1000)) + 'km'
 
   logger.debug(
     "Currently " + readable_distance_from_home + " from home " +
     "and " + readable_distance_from_work + " from work."
   )
 
-  if distance_from_work.m <= 50:
+  if event['distance_from_work'] <= 50:
 
     if now.hour < 17:
       speech_choices = [
@@ -157,18 +147,18 @@ def get_speech_text_response():
       ]
       speech = random.choice(speech_choices)
 
-  elif distance_from_work.m <= 200:
+  elif event['distance_from_work'] <= 200:
     # TODO: Determine the minutes of travel from the current location to home.
     speech = "He's just left work! <audio src='soundbank://soundlibrary/human/amzn_sfx_crowd_cheer_med_01'/> He should be home in about X minutes."
 
-  elif distance_from_home.m <= 50:
+  elif event['distance_from_home'] <= 50:
     speech_choices = [
       "I think he's at home already!",
       "Looks like he's already home!"
     ]
     speech = random.choice(speech_choices)
 
-  elif distance_from_home.m <= 200:
+  elif event['distance_from_home'] <= 200:
     # TODO: Determine the minutes of travel from the current location to home.
     speech_choices = [
       "He's almost home! About X minutes away, depending on how the bus goes.",

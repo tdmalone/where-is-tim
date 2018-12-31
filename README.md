@@ -19,8 +19,9 @@ You should know that not all of the required infrastructure is contained within 
   - The SAM deployment template adds a [Lambda Layer](https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html) holding the ASK SDK, hence `ask-sdk` is not included in the function's [requirements.txt](lambda/us-east-1_alexa-where-is-tim-0a33c80c982c/requirements.txt), but would need to be added if you use/deploy it elsewhere. Otherwise, the layer's ARN is `arn:aws:lambda:us-east-1:173334852312:layer:ask-sdk-for-python-36:1` if you want to add it to your Lambda function manually.
 
 - **The database structure** assumes a DynamoDB backend, populated by geolocation events coming from the [Proximity Events](http://proximityevents.com/) iPhone app.
-  - These are parsed by a [custom webhook parser](https://github.com/tdmalone/proximity-events-webhook-parser) and forwarded to an SNS topic.
-  - They're then inserted into a DynamoDB table by another custom Lambda function, which does a bunch of other custom automation things based on my location (this function is currently private, but I'll make it public when I've fully separated personal configuration from the code).
+  - These are parsed by a [this webhook parser](https://github.com/tdmalone/proximity-events-webhook-parser) and forwarded to an SNS topic.
+  - They're then inserted into a DynamoDB table by a custom Lambda function, which does a bunch of other custom automation things based on my location (this function is currently private, but I'll make it public when I've fully separated personal configuration from the code).
+  - From there, for performance reasons they're then replicated to a DynamoDB table in the same region that this Alexa skill runs from, and the data is enriched at the same time (by [this function](https://github.com/tdmalone/dynamodb-copy))
 
 You should also know that because the original code was licensed under the Amazon Software License, a portion of it is still encumbered by it (see [LICENSE](LICENSE) for more details, specifically clause 3.2). That means this project is **not completely open source**, as clause 3.3 would appear to fall foul of clause 10 of the [Open Source definition](https://opensource.org/osd) (IANAL though - I'm just interested in licenses). This applies to all projects derived from ASL-licensed examples.
 
