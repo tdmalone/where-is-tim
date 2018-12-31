@@ -26,9 +26,12 @@ TIMEZONE = getenv('TIMEZONE')
 VALID_EVENT_MAX_AGE_IN_SECONDS = float(getenv('VALID_EVENT_MAX_AGE_IN_SECONDS'))
 VALID_EVENT_MAX_ACCURACY_IN_METRES = float(getenv('VALID_EVENT_MAX_ACCURACY_IN_METRES'))
 
+# @see https://docs.python.org/3/library/logging.html#logging-levels
+LOGGING_LEVEL = getenv('LOGGING_LEVEL', 'INFO')
+
 skill = skill_builder.SkillBuilder()
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG) # TODO: Make this configurable via environment variable.
+logger.setLevel(LOGGING_LEVEL)
 
 dynamodb = client('dynamodb')
 
