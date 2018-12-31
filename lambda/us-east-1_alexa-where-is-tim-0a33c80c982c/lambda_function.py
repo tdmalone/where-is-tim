@@ -135,24 +135,23 @@ def get_speech_text_response():
 
     if now.hour < 17:
       speech_choices = [
-        "He hasn't left work yet." + \
-          "<audio src='soundbank://soundlibrary/office/amzn_sfx_typing_medium_01'/>",
-        "He's still at work. " + \
-          "<audio src='soundbank://soundlibrary/office/amzn_sfx_typing_medium_01'/>"
+        "He hasn't left work yet." + alexa_sound_effect('typing_medium_01'),
+        "He's still at work." + alexa_sound_effect('typing_medium_01')
       ]
       speech = random.choice(speech_choices)
 
     else:
       speech_choices = [
-        "<audio src='soundbank://soundlibrary/human/amzn_sfx_clear_throat_ahem_01'/> " + \
-          "I don't think he's left work yet.",
+        alexa_sound_effect('clear_throat_ahem_01') + "I don't think he's left work yet.",
         "I'm pretty sure he's still in the office."
       ]
       speech = random.choice(speech_choices)
 
   elif event['distance_from_work'] <= 200:
     # TODO: Determine the minutes of travel from the current location to home.
-    speech = "He's just left work! <audio src='soundbank://soundlibrary/human/amzn_sfx_crowd_cheer_med_01'/> He should be home in about X minutes."
+    speech = \
+      "He's just left work!" + alexa_sound_effect('crowd_cheer_med_01') + \
+      "He should be home in about X minutes."
 
   elif event['distance_from_home'] <= 50:
     speech_choices = [
@@ -198,6 +197,10 @@ def json_encode(object):
   @see http://jsonpickle.github.io/api.html#customizing-json-output
   """
   return jsonpickle.pickler.encode(object, unpicklable=False)
+
+def alexa_sound_effect(sound_effect_name):
+  """@see https://developer.amazon.com/docs/custom-skills/ask-soundlibrary.html"""
+  return "<audio src='soundbank://soundlibrary/office/amzn_sfx_" + sound_effect_name + "'/>"
 
 ############################
 # Built-in intent handlers
