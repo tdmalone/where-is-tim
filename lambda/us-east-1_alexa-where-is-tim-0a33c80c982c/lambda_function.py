@@ -116,22 +116,25 @@ def get_speech_text_response():
   logger.info(event)
   if event is None: return "I'm sorry, I'm not sure where he is at the moment."
 
+  distance_from_home = float(event['distance_from_home']['N'])
+  distance_from_work = float(event['distance_from_work']['N'])
+
   # We'll generally read distances in kilometres, unless it's less than .95 of a kilometre.
-  if event['distance_from_home'] < 950:
-    readable_distance_from_home = str(round(event['distance_from_home'])) + 'm'
+  if distance_from_home < 950:
+    readable_distance_from_home = str(round(distance_from_home)) + 'm'
   else:
-    readable_distance_from_home = str(round(event['distance_from_home'] / 1000)) + 'km'
-  if event['distance_from_work'] < 950:
-    readable_distance_from_work = str(round(event['distance_from_work'])) + 'm'
+    readable_distance_from_home = str(round(distance_from_home / 1000)) + 'km'
+  if distance_from_work < 950:
+    readable_distance_from_work = str(round(distance_from_work)) + 'm'
   else:
-    readable_distance_from_work = str(round(event['distance_from_work'] / 1000)) + 'km'
+    readable_distance_from_work = str(round(distance_from_work / 1000)) + 'km'
 
   logger.debug(
     "Currently " + readable_distance_from_home + " from home " +
     "and " + readable_distance_from_work + " from work."
   )
 
-  if event['distance_from_work'] <= 50:
+  if distance_from_work <= 50:
 
     if now.hour < 17:
       speech_choices = [
@@ -147,20 +150,20 @@ def get_speech_text_response():
       ]
       speech = random.choice(speech_choices)
 
-  elif event['distance_from_work'] <= 200:
+  elif distance_from_work <= 200:
     # TODO: Determine the minutes of travel from the current location to home.
     speech = \
       "He's just left work!" + alexa_sound_effect('crowd_cheer_med_01') + \
       "He should be home in about X minutes."
 
-  elif event['distance_from_home'] <= 50:
+  elif distance_from_home <= 50:
     speech_choices = [
       "I think he's at home already!",
       "Looks like he's already home!"
     ]
     speech = random.choice(speech_choices)
 
-  elif event['distance_from_home'] <= 200:
+  elif distance_from_home <= 200:
     # TODO: Determine the minutes of travel from the current location to home.
     speech_choices = [
       "He's almost home! About X minutes away, depending on how the bus goes.",
