@@ -7,8 +7,10 @@ Depends on the particular structure of geo events placed by the Proximity Events
 @author Tim Malone <tim@timmalone.id.au>
 """
 
+import json
 import random
 import logging
+import requests
 import jsonpickle
 
 from os import getenv
@@ -22,12 +24,18 @@ DYNAMODB_TABLE = getenv('DYNAMODB_TABLE')
 EXCEPTION_MESSAGE = getenv('EXCEPTION_MESSAGE')
 FALLBACK_MESSAGE = getenv('FALLBACK_MESSAGE')
 FALLBACK_REPROMPT = getenv('FALLBACK_REPROMPT')
+METRO_TRAINS_LINE_ID = int(getenv('METRO_TRAINS_LINE_ID'))
+PRONOUN = getenv('PRONOUN').split('/')
 TIMEZONE = getenv('TIMEZONE')
 VALID_EVENT_MAX_AGE_IN_SECONDS = float(getenv('VALID_EVENT_MAX_AGE_IN_SECONDS'))
 VALID_EVENT_MAX_ACCURACY_IN_METRES = float(getenv('VALID_EVENT_MAX_ACCURACY_IN_METRES'))
 
 # @see https://docs.python.org/3/library/logging.html#logging-levels
 LOGGING_LEVEL = getenv('LOGGING_LEVEL', 'INFO')
+
+SECONDS_IN_AN_HOUR = 3600
+SECONDS_IN_A_MINUTE = 60
+MINUTES_IN_AN_HOUR = 60
 
 skill = skill_builder.SkillBuilder()
 logger = logging.getLogger(__name__)
@@ -41,19 +49,20 @@ def maybe_get_invalid_date_response(now):
   speech = False
 
   if now.isoweekday() > 5:
-    speech = "He's not at work today, so I'm not really sure!"
+    speech = PRONOUN[0] + "'s not at work today, so I'm not really sure!"
 
   elif now.hour <= 13:
-    speech = "It's too early for him to have left work yet. Check back with me later on."
+    speech = "It's too early for " + PRONOUN[1] + " to have left work yet. " + \
+      "Check back with me later."
 
   elif now.hour <= 15:
-    speech = "It's a bit too early for him to have left work yet."
+    speech = "It's a bit too early for " + PRONOUN[1] + " to have left work yet."
 
   return speech
 
 def get_newest_valid_event():
   """
-  Gets Tim's most recent location from DynamoDB.
+  Gets most recent location from DynamoDB.
   Note that as a scan is done on this table, for best performance it should only contain the
   most recent entries - i.e. a TTL attribute should be used to clean it out regularly.
   """
@@ -108,13 +117,16 @@ def get_speech_text_response():
   now = datetime.today().astimezone(timezone(TIMEZONE))
 
   # Return early if it's not a valid day of the week or time of day.
+  # TODO: You can comment this out to avoid the date/time checks, if desired.
   speech = maybe_get_invalid_date_response(now)
   if speech is not False: return speech
 
   # Return early if there's no new enough event. Too old, we can't trust it's current.
   event = get_newest_valid_event()
   logger.info(event)
-  if event is None: return "I'm sorry, I'm not sure where he is at the moment."
+  if event is None: return "I'm sorry, I'm not sure where " + PRONOUN[0] + " is at the moment."
+
+  suburb = get_event_suburb(event)
 
   distance_from_home = float(event['distance_from_home']['N'])
   distance_from_work = float(event['distance_from_work']['N'])
@@ -129,65 +141,134 @@ def get_speech_text_response():
   else:
     readable_distance_from_work = str(round(distance_from_work / 1000)) + 'km'
 
+  # TODO: Work out the best framework for accessing alternative time values here, rather than just
+  #       always `time_from_home_public_transport`.
+  time_from_home = int(event['time_from_home_public_transport']['N'])
+
+  # Make the time nice and readable (speakable).
+  seconds = time_from_home
+  hours = seconds // SECONDS_IN_AN_HOUR
+  minutes = seconds // SECONDS_IN_A_MINUTE - hours * MINUTES_IN_AN_HOUR
+  if hours >= 1:
+    readable_time_from_home = str(hours) + ' ' + maybe_pluralise('hour', hours)
+    minutes = round_to_nearest(minutes, 5)
+    if minutes > 5:
+      readable_time_from_home += ' and ' + str(minutes) + ' ' + maybe_pluralise('minute', minutes)
+  else:
+    if minutes > 10:
+      minutes = round_to_nearest(minutes, 5)
+    readable_time_from_home = str(minutes) + ' ' + maybe_pluralise('minute', minutes)
+
   logger.debug(
-    "Currently " + readable_distance_from_home + " from home " +
-    "and " + readable_distance_from_work + " from work."
+    'Currently in ' + suburb + ', ' + readable_distance_from_home + ' (' + \
+    readable_time_from_home + ') from home and ' + readable_distance_from_work + ' from work.'
   )
 
+  # Work out what to say based on distance from work/home or time to home.
   if distance_from_work <= 50:
 
     if now.hour < 17:
       speech_choices = [
-        "He hasn't left work yet." + alexa_sound_effect('typing_medium_01'),
-        "He's still at work." + alexa_sound_effect('typing_medium_01')
+        PRONOUN[0] + " hasn't left work yet." + alexa_sound_effect('typing_medium_01'),
+        PRONOUN[0] + "'s still at work." + alexa_sound_effect('typing_medium_01')
       ]
       speech = random.choice(speech_choices)
 
     else:
       speech_choices = [
-        alexa_sound_effect('clear_throat_ahem_01') + "I don't think he's left work yet.",
-        "I'm pretty sure he's still in the office."
+        alexa_sound_effect('clear_throat_ahem_01') + \
+          "I don't think " + PRONOUN[0] + "'s left work yet.",
+        "I'm pretty sure " + PRONOUN[0] + "'s still in the office."
       ]
       speech = random.choice(speech_choices)
 
-  elif distance_from_work <= 200:
-    # TODO: Determine the minutes of travel from the current location to home.
+  elif distance_from_work <= 500:
     speech = \
-      "He's just left work!" + alexa_sound_effect('crowd_cheer_med_01') + \
-      "He should be home in about X minutes."
+      PRONOUN[0] + "'s just left work!" + alexa_sound_effect('crowd_cheer_med_01') + \
+      PRONOUN[0] + " should be home in about " + readable_time_from_home + "."
 
   elif distance_from_home <= 50:
     speech_choices = [
-      "I think he's at home already!",
-      "Looks like he's already home!"
+      "I think " + PRONOUN[0] + "'s at home already!",
+      "Looks like " + PRONOUN[0] + "'s already home!"
     ]
     speech = random.choice(speech_choices)
+    return speech # No need for optional data to be added on to this.
+
+  elif minutes == 1:
+    speech = PRONOUN[0] + "'ll be here any minute!"
+    return speech # No need for optional data to be added on to this.
+
+  elif minutes < 3:
+    speech = PRONOUN[0] + "'s just around the corner."
+    return speech # No need for optional data to be added on to this.
+
+  elif minutes <= 5:
+    speech = PRONOUN[0] + "'ll be home in less than 5 minutes."
+    return speech # No need for optional data to be added on to this.
 
   elif distance_from_home <= 200:
-    # TODO: Determine the minutes of travel from the current location to home.
     speech_choices = [
-      "He's almost home! About X minutes away, depending on how the bus goes.",
-      "He's not far - around X minutes to go, depending on the bus."
+      PRONOUN[0] + "'s almost here! Around " + readable_time_from_home + " away.",
+      "Not much longer - about " + readable_time_from_home + " to go."
     ]
     speech = random.choice(speech_choices)
+    return speech # No need for optional data to be added on to this.
+
+  elif distance_from_home <= 1800:
+    speech_choices = [
+      PRONOUN[0] + "'s almost home! About " + readable_time_from_home + " away, " + \
+        "depending on how the bus goes.",
+      PRONOUN[0] + "'s not far - around " + readable_time_from_home + " to go, " + \
+        "depending on the bus."
+    ]
+    speech = random.choice(speech_choices)
+    return speech # No need for optional data to be added on to this.
 
   else:
-    # TODO: Determine the minutes of travel from the current location to home.
-    suburb = get_event_suburb(event)
     speech_choices = [
-      "He's on his way - he should be home in around X minutes.",
-      "He's about X minutes from home.",
-      "He's currently in " + suburb + ", about X minutes away."
+      PRONOUN[0] + "'s on his way - " + PRONOUN[0] + " should be home " + \
+        "in around " + readable_time_from_home + ".",
+      PRONOUN[0] + "'s about " + readable_time_from_home + " from home.",
+      PRONOUN[0] + "'s currently in " + suburb + ", about " + readable_time_from_home + " away."
     ]
     speech = random.choice(speech_choices)
 
-    # TODO: Check for active train disruptions on the Lilydale line.
-      # If active disruption...
-        #speech += " There's a disruption on the Lilydale line though, which may slow him down a little."
-        #speech += " But, there's a disruption on the Lilydale line, so he might take a little  longer."
+  # Potentially add some notes on train line performance.
 
-  suburb = get_event_suburb(event)
-  speech += " (in " + suburb + ")."
+  line_data = get_metro_trains_line_data(METRO_TRAINS_LINE_ID)
+  line_name = line_data['name']
+
+  train_speech_choices = {
+    "travel": [
+      "Metro have adjusted some services today though, " + \
+        "so " + PRONOUN[0] + " may be a little longer than usual."
+    ],
+    "works": [
+      "Metro are currently doing works on the " + line_name + " line though, " + \
+        "so this may delay " + PRONOUN[1] + "."
+    ],
+    "minor": [
+      "There's a disruption on the " + line_name + " line though, " + \
+        "which may slow " + PRONOUN[1] + " down a little.",
+      "But, there's a disruption on the " + line_name + " line, " + \
+        "so " + PRONOUN[0] + " might take a little longer."
+    ],
+    "major": [
+      "There are major delays on the " + line_name + " line though, " + \
+        "so " + PRONOUN[0] + " might take longer.",
+      "But, there's major issues on the " + line_name + " line at the moment, " + \
+        "which might slow " + PRONOUN[1] + " down."
+    ],
+    "suspended": [
+      "However, Metro tells me the " + line_name + " line is suspended, " + \
+        "so " + PRONOUN[0] + " could be a lot later."
+    ]
+  }
+
+  if line_data['status'] in train_speech_choices:
+    speech += " " + random.choice(train_speech_choices[line_data['status']])
+
   return speech
 
 ############################
@@ -205,6 +286,47 @@ def alexa_sound_effect(sound_effect_name):
   """@see https://developer.amazon.com/docs/custom-skills/ask-soundlibrary.html"""
   return "<audio src='soundbank://soundlibrary/office/amzn_sfx_" + sound_effect_name + "'/>"
 
+# @see https://stackoverflow.com/questions/2272149/round-to-5-or-other-number-in-python
+def round_to_nearest(number, nearest=5):
+  return int(nearest * round(float(number) / nearest))
+
+def maybe_pluralise(word, number):
+  if number == 1: return word
+  else: return word + 's'
+
+def get_metro_trains_line_data(line_id):
+  """
+  Returns the most recent status currently set on a Metro Trains line (Melbourne, Australia), along
+  with the line name.
+  """
+
+  endpoint = "http://www.metrotrains.com.au/api?op=get_healthboard_alerts"
+  data = json.loads(requests.get(endpoint).content)
+
+  # Line IDs currently range from 82-98, with some missing, plus 168307. You can find your line ID
+  # in the source of metrotrains.com.au.
+  if str(line_id) not in data:
+    raise ValueError('The Metro Trains line ID ' + str(line_id) + ' could not be found.')
+
+  line_data = data[str(line_id)]
+  response = {}
+
+  # We need a fallback for lines that don't have their line_name set.
+  if 'line_name' in line_data:
+    response['name'] = line_data['line_name']
+  else:
+    response['name'] = 'train'
+
+  # If `alerts` is a string, it always means good service. Otherwise, the most recent alert is first
+  # in a list. `alert_type` (in order of increasing severity) can be 'travel', 'works', 'minor',
+  # 'major' or 'suspended'.
+  if isinstance(line_data['alerts'], str):
+    response['status'] = 'good'
+  else:
+    response['status'] = line_data['alerts'][0]['alert_type']
+
+  return response
+
 ############################
 # Built-in intent handlers
 # The following blocks of code derive from alexa/skill-sample-python-fact and are ASL licensed.
@@ -212,18 +334,18 @@ def alexa_sound_effect(sound_effect_name):
 # @see https://github.com/alexa/skill-sample-python-fact/blob/master/lambda/py/lambda_function.py
 ############################
 
-class GetTimLocationHandler(dispatch_components.AbstractRequestHandler):
-  """Handler for Skill Launch and GetTimLocation Intent."""
+class GetLocationHandler(dispatch_components.AbstractRequestHandler):
+  """Handler for Skill Launch and GetLocation Intent."""
 
   def can_handle(self, handler_input):
     # type: (HandlerInput) -> bool
     return \
       utils.is_request_type("LaunchRequest")(handler_input) \
-      or utils.is_intent_name("GetTimLocation")(handler_input)
+      or utils.is_intent_name("GetLocation")(handler_input)
 
   def handle(self, handler_input):
     # type: (HandlerInput) -> Response
-    logger.info("In GetTimLocationHandler")
+    logger.info("In GetLocationHandler")
     speech = get_speech_text_response()
     handler_input.response_builder.speak(speech).set_should_end_session(True)
     return handler_input.response_builder.response
@@ -286,7 +408,7 @@ class ResponseLogger(dispatch_components.AbstractResponseInterceptor):
     logger.debug("Alexa Response: " + json_encode(response))
 
 # Register intent handlers.
-skill.add_request_handler(GetTimLocationHandler())
+skill.add_request_handler(GetLocationHandler())
 skill.add_request_handler(FallbackIntentHandler())
 skill.add_request_handler(SessionEndedRequestHandler())
 

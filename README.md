@@ -25,10 +25,12 @@ You should know that not all of the required infrastructure is contained within 
 
 You should also know that because the original code was licensed under the Amazon Software License, a portion of it is still encumbered by it (see [LICENSE](LICENSE) for more details, specifically clause 3.2). That means this project is **not completely open source**, as clause 3.3 would appear to fall foul of clause 10 of the [Open Source definition](https://opensource.org/osd) (IANAL though - I'm just interested in licenses). This applies to all projects derived from ASL-licensed examples.
 
-Other useful things:
+Other useful things to know:
 
   - For ease-of-use in deploying changes, you might like to install the [ASK CLI](https://developer.amazon.com/docs/smapi/quick-start-alexa-skills-kit-command-line-interface.html).
   - The ASK Sample Fact Skill for Python also provides some good [getting started instructions](https://github.com/alexa/skill-sample-python-fact/blob/master/instructions/1-voice-user-interface.md).
+  - Train line disruption data works only in Melbourne, Australia. You'll need to rewrite it if you want to support a train service in another city/country.
+  - The pronoun used in the responses can be configured with the `PRONOUN` environment variable - by setting it to eg. 'he/him', 'she/her', 'they/their', etc.
 
 ## Questions?
 
