@@ -1,6 +1,11 @@
 
+__pycache__/
+
 # User-specific ASK CLI deployment data.
 .ask
+
+# Dynamically generated coverage data.
+.coverage
 
 # Installed Python dependencies.
 lambda/*/vendor/

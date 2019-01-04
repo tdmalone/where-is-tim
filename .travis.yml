@@ -1,1 +1,18 @@
-# Nothing here just yet.
+# @see https://docs.travis-ci.com/user/languages/python/
+
+language: python
+python:
+  - 3.6
+
+install:
+  - make install
+
+script:
+  - make test
+
+notifications:
+  email: false
+  slack:
+    rooms:
+      - secure: iIA+W4TjWT+0d7i1oAkt9qVZhpY3CFIiINaj2baNZ5VWOpePIB1CDEQmiXHmuYYkXm9/ZOBFdoidTCDqIYbCo8eYeniy6qi2Pj2ZfSHKB9BWq+Z+7k8FvxJiuw0GL+8P99zva3ecISDWBotcqik0AJ/O4bpz+oB1DBWfh2Elesu5l9PJoQj36tecCgYazpjPkNx2shqIymtEjQs7EHyrebp+Kuytb4bj0RRV9PBgdub4dv2Guube9x+mipsrql+OqOBd0dRQNVtKrLekMhL1y+0pkkAvEtfdYyaouDVgAKDYle5gGrEaLtSDNIAISnolZysm0BqPoUXx5jqnVYlSAQVaFPzigI1NunN/bc0B4qZpsM8zV9gDTRDTO/2JxC7PYD6ebUW4GUv6Lc2X/xSgLhwgBbEQJ4WMrMnM/5BBxYs7y0tZXxJB/me0Lm1VBGzX7maJv7aIjq82tExsZNOdXjfAndRXMY+UE95y/X7nL+JXXv4cb/cOYJeEmCGvAOe04INw3TNTjqFSfhWRHCcCAzboubOHsgLG+HWT4sxKkClaoJcZutt71JPfldpKZ9iQX0kw6X12ZyCHkGb3a/KgDkJNKWvbi2+4MknSRJAdC1GVvzoicSbKNcyoppqBE4/C9Y7Mx1hZylLxbAeFqHEyhheQPQ1iQhYp50Ei0mRh9kk=
+    on_start: always

@@ -1,4 +1,4 @@
-.PHONY: all install deploy lambda
+.PHONY: all install test deploy lambda
 
 all: install deploy
 
@@ -13,6 +13,10 @@ install:
 		deactivate && \
 		rm -rf venv && \
 		rm -rf vendor/*.dist-info
+
+test:
+	PYTHONPATH="$(shell pwd)/$(shell find lambda -type d -depth 1 | head -n1)/vendor:${PYTHONPATH}" \
+		pytest
 
 prepare-deploy:
 	cd lambda/*/ && \
