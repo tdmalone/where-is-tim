@@ -2,5 +2,5 @@
 # User-specific ASK CLI deployment data.
 .ask
 
-# Installed Python dependencies (basically, folders under the Lambda function folder only).
-lambda/*/*/
+# Installed Python dependencies.
+lambda/*/vendor/

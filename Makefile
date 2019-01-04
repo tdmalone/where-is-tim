@@ -8,10 +8,11 @@ install:
 	cd lambda/*/ && \
 		virtualenv venv && \
 		source venv/bin/activate && \
-		pip install --requirement requirements.txt --target . && \
+		mkdir -p vendor && \
+		pip install --requirement requirements.txt --target vendor && \
 		deactivate && \
 		rm -rf venv && \
-		rm -rf *.dist-info
+		rm -rf vendor/*.dist-info
 
 prepare-deploy:
 	cd lambda/*/ && \
