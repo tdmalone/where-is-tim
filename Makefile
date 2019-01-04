@@ -13,16 +13,19 @@ install:
 		rm -rf venv && \
 		rm -rf *.dist-info
 
+prepare-deploy:
+	cd lambda/*/ && \
+		rm -rf __pycache__
+	command -v ask || npm install -g ask-cli
+
 # Does a forced deployment of the Alexa Skill and Lambda function. This overrides any changes made
 # directly in the Alexa/AWS consoles. Dependencies must be installed first.
 #
 # Requires the ASK CLI, which will be installed if it isn't already:
 # https://developer.amazon.com/docs/smapi/quick-start-alexa-skills-kit-command-line-interface.html
-deploy:
-	command -v ask || npm install -g ask-cli
+deploy: prepare-deploy
 	ask deploy --force
 
 # Like the above, but for the Lambda function only.
-lambda:
-	command -v ask || npm install -g ask-cli
+lambda: prepare-deploy
 	ask deploy --force --target lambda

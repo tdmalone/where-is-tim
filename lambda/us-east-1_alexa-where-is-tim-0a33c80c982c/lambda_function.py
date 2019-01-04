@@ -25,7 +25,7 @@ EXCEPTION_MESSAGE = getenv('EXCEPTION_MESSAGE')
 FALLBACK_MESSAGE = getenv('FALLBACK_MESSAGE')
 FALLBACK_REPROMPT = getenv('FALLBACK_REPROMPT')
 METRO_TRAINS_LINE_ID = int(getenv('METRO_TRAINS_LINE_ID'))
-PRONOUN = getenv('PRONOUN').split('/')
+PRONOUN = getenv('PRONOUN', 'they/their').split('/')
 TIMEZONE = getenv('TIMEZONE')
 
 # @see https://docs.python.org/3/library/logging.html#logging-levels
@@ -68,7 +68,7 @@ def get_newest_valid_event():
     timestamp = functions.get_event_timestamp(event)
 
     if not functions.is_event_accurate_enough(event) or \
-      not functions.is_event_new_enough(event, timestamp):
+      not functions.is_timestamp_new_enough(timestamp):
       continue
 
     if timestamp > newest_valid_event_timestamp:

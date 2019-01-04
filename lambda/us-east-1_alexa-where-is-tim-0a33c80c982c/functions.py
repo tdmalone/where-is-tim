@@ -12,6 +12,9 @@ from os import getenv
 from time import time
 from datetime import datetime
 
+METRO_TRAINS_ENDPOINT = \
+  getenv('METRO_TRAINS_ENDPOINT', 'http://www.metrotrains.com.au/api?op=get_healthboard_alerts')
+
 VALID_EVENT_MAX_AGE_IN_SECONDS = float(getenv('VALID_EVENT_MAX_AGE_IN_SECONDS'))
 VALID_EVENT_MAX_ACCURACY_IN_METRES = float(getenv('VALID_EVENT_MAX_ACCURACY_IN_METRES'))
 
@@ -48,8 +51,7 @@ def get_metro_trains_line_data(line_id):
   with the line name.
   """
 
-  endpoint = "http://www.metrotrains.com.au/api?op=get_healthboard_alerts"
-  data = json.loads(requests.get(endpoint).content)
+  data = json.loads(requests.get(METRO_TRAINS_ENDPOINT).content)
 
   # Line IDs currently range from 82-98, with some missing, plus 168307. You can find your line ID
   # in the source of metrotrains.com.au.
@@ -63,7 +65,7 @@ def get_metro_trains_line_data(line_id):
   if 'line_name' in line_data:
     response['name'] = line_data['line_name']
   else:
-    response['name'] = 'train'
+    response['name'] = 'train' # This way, 'the train line' will still make sense ;)
 
   # If `alerts` is a string, it always means good service. Otherwise, the most recent alert is first
   # in a list. `alert_type` (in order of increasing severity) can be 'travel', 'works', 'minor',
@@ -111,7 +113,7 @@ def is_event_accurate_enough(event):
     return False
   return True
 
-def is_event_new_enough(event, timestamp):
+def is_timestamp_new_enough(timestamp):
   if timestamp < time() - VALID_EVENT_MAX_AGE_IN_SECONDS:
     return False
   return True
