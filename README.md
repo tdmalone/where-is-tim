@@ -16,6 +16,11 @@ You should know that not all of the required infrastructure is contained within 
 
 - **The Lambda function** was originally set up from the [Alexa Skills Kit (ASK) Sample Fact Skill [Python 3.6]](https://serverlessrepo.aws.amazon.com/applications/arn:aws:serverlessrepo:us-east-1:173334852312:applications~alexa-skills-kit-python36-factskill) ([GitHub repo](https://github.com/alexa/skill-sample-python-fact)) via the [AWS Serverless Application Repository](https://aws.amazon.com/serverless/serverlessrepo/) (SAM), with many changes made since then.
   - A number of settings have been manually changed on the Lambda function (I'll add Terraform configuration for this at some stage, since I prefer it over CloudFormation and even with [drift detection](https://aws.amazon.com/blogs/aws/new-cloudformation-drift-detection/), CloudFormation can't tell that I've messed with it).
+  - You'll need some environment variables configured, such as:
+    - `DYNAMODB_TABLE`: The name of the DynamoDB table to read from
+    - `PYTHONPATH`: Currently should be set to `/var/task/vendor:/var/runtime:/opt/python`
+    - `TIMEZONE`: The name of the timezone (eg. `Australia/Melbourne`) that the location event times are stored in
+    - Additional _optional_ environment variables include `EXCEPTION_MESSAGE`, `FALLBACK_MESSAGE`, `LOGGING_LEVEL`, `METRO_TRAINS_LINE_ID`, `PRONOUN`, `VALID_EVENT_MAX_ACCURACY_IN_METRES`, and `VALID_EVENT_MAX_AGE_IN_SECONDS`.
   - The SAM deployment template adds a [Lambda Layer](https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html) holding the ASK SDK, hence `ask-sdk` is not included in the function's [requirements.txt](lambda/us-east-1_alexa-where-is-tim-0a33c80c982c/requirements.txt), but would need to be added if you use/deploy it elsewhere. Otherwise, the layer's ARN is `arn:aws:lambda:us-east-1:173334852312:layer:ask-sdk-for-python-36:1` if you want to add it to your Lambda function manually.
 
 - **The database structure** assumes a DynamoDB backend, populated by geolocation events coming from the [Proximity Events](http://proximityevents.com/) iPhone app.
@@ -27,10 +32,13 @@ You should also know that because the original code was licensed under the Amazo
 
 Other useful things to know:
 
-  - For ease-of-use in deploying changes, you might like to install the [ASK CLI](https://developer.amazon.com/docs/smapi/quick-start-alexa-skills-kit-command-line-interface.html).
+  - There's a `Makefile` with some common tasks, such as installing dependencies in a virtualenv (`make install`) and deploying updates. For easy deployment, you might like to install the [ASK CLI](https://developer.amazon.com/docs/smapi/quick-start-alexa-skills-kit-command-line-interface.html), which `make deploy` will try to do for you.
   - The ASK Sample Fact Skill for Python also provides some good [getting started instructions](https://github.com/alexa/skill-sample-python-fact/blob/master/instructions/1-voice-user-interface.md).
   - Train line disruption data works only in Melbourne, Australia. You'll need to rewrite it if you want to support a train service in another city/country.
-  - The pronoun used in the responses can be configured with the `PRONOUN` environment variable - by setting it to eg. 'he/him', 'she/her', 'they/their', etc.
+
+## Tests
+
+Run `make test`. You'll need [`pytest`](https://docs.pytest.org/en/latest/) installed.
 
 ## Questions?
 

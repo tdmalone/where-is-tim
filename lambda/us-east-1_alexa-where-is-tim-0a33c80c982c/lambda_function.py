@@ -21,9 +21,9 @@ from datetime import datetime
 from ask_sdk_core import skill_builder, dispatch_components, utils
 
 DYNAMODB_TABLE = getenv('DYNAMODB_TABLE')
-EXCEPTION_MESSAGE = getenv('EXCEPTION_MESSAGE')
-FALLBACK_MESSAGE = getenv('FALLBACK_MESSAGE')
-FALLBACK_REPROMPT = getenv('FALLBACK_REPROMPT')
+EXCEPTION_MESSAGE = getenv('EXCEPTION_MESSAGE', 'Sorry, something went wrong.')
+FALLBACK_MESSAGE = getenv('FALLBACK_MESSAGE', 'I\'m not sure exactly what you\'re after.')
+FALLBACK_REPROMPT = getenv('FALLBACK_REPROMPT', 'What would you like me to do?')
 METRO_TRAINS_LINE_ID = int(getenv('METRO_TRAINS_LINE_ID'))
 PRONOUN = getenv('PRONOUN', 'they/their').split('/')
 TIMEZONE = getenv('TIMEZONE')
