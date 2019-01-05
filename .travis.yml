@@ -4,6 +4,10 @@ language: python
 python:
   - 3.6
 
+env:
+  global:
+    - AWS_DEFAULT_REGION=us-east-1
+
 before_install:
   # Install some built-in modules that appear to be missing.
   - pip install python-dateutil
@@ -21,5 +25,5 @@ notifications:
   email: false
   slack:
     rooms:
-      - secure: RxbWFsDwVjC+0v66YaNQSos8IciVT6zEitORpQeJATSTZ2zXxSMpYk/xhSmkjrLCx+Y29HX0WTZsLIv+3PlZ3UzqeotwvKMosLk4lR6PzxFS0oohQhDEH43/QXHOPMeQd7RhP9ftImyUu98ZJYRZ400MAK4AJHSOS+/O8gd1XxNx7dB1xVkZlXw/yuLKv/0X/7xGz3tr8uQuZlemDY2AsEHr1voO5uNaH8LzXqzPAWTIyun7xd8gNeIZpPTGeWWb5dG3KEWtF4gqjzSQq/L5IuzTBH9Vs7L2njR6cRuioVp/jVZm9XqmiZtSKVZD3vPkO6WMXpisdOOoROCC0kLjnfoD1QeKTFFwSqnwzwfP/II/IyMtT4sefbpgjdiv9jkE/hgzUDmWbopzPHCkf5n4qbvUo0BdSWoixRAk/2Y+2GHE6kwfOZ418cJokSgahK/SzVXp4z+Is6RqVVkyBzxKtch6pOoSsWskiQFNnaXqWVueIIHGPox9bm93aiZm+F9+w1RCPPKVeIjlIycauQt8X3MLCKCm1mFC9VJowvbd/9TB0cHAcy2suXELML7bAS+VUu+glhVdCz8p+UQstkt8zuwE4kwIHN0VdUKwyVso8HKej2PiM9E7UIhkDsWfJpNiYm1lysG80DK/mQXWLvx1XiW7ZDw9F0LcLReloKAqMvA=
+      - secure: Td8ScZpJPfmOf81IxiG5fWFHo/H+h8765u6c27J9hcZTI+0uG/iFjavWHC3R7ClUT4+AXcOZsTB9rHIWBKQ7+iVZ/kNEObDdYb+YNlAvHeAEdkurKooG/aBXzmO9tU6AnPFG44aDDgzybt4rL3fVgiytVauhxHONYCXdMKjf91OEOjuNO+Ufd6455w8AgD1aMUtGglDNfAOu60irrkhSuWtdvswkLWIjZZpxLYhxTGou/Wc8OMz2cpaxNW2KPePD1ALpX/8Y5bBHZqXEM7jVnx44CJ8i/qd5OEYhJb4qy9bBLeTw0JerN8p9DCkTmP43ZsMNyQQ2KeBxsln36DMZtRn0pS2d0d+n20LGyUetShB9iN9OpvfH8KtN1iRB1VSDGr+vYvghaUb9JodjyW/0NPBWWeSHry6DVE6V5hZYn8msgY6H5Nbb19tIzmz3D9gqP90Mt55nEclrxUa/gc1kgCoGL8Y5QTqPGo7BMyNwIiqpuWOsVch75GRYumO0LYOmn30gM6sm63BlL0eF8+9fNFNdgTtSupXR4mrXYZ8M4J8uBWoD6VoEaMfuWUsu/cvue3zH/oyjXBq7r1knjnjwyfd1bf6uDdl7+8SkvdlwEth0zFIDAy/AfuW4t+l7TbfxQUydI9DtWUO4Mn3Bf1ZPND4YovAlp6duUp30vzreeiw=
     on_start: always
