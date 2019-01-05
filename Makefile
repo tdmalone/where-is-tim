@@ -2,25 +2,30 @@
 
 all: install deploy
 
+# The directory that the external Python modules are installed into. If this is changed, it should
+# also be updated in .gitignore, .coveragerc, AND the PYTHONPATH environment variable in the Lambda
+# function configuration.
+modules_directory = vendor
+
 # Using a fresh virtualenv, installs dependencies for the Lambda function as defined in
 # requirements.txt. This makes it ready to package up into a zip as required for deployment.
 install:
 	cd lambda/*/ && \
 		virtualenv venv && \
 		. venv/bin/activate && \
-		mkdir -p vendor && \
-		pip install --requirement requirements.txt --target vendor && \
+		mkdir -p $(modules_directory) && \
+		pip install --requirement requirements.txt --target $(modules_directory) && \
 		deactivate && \
 		rm -rf venv && \
-		rm -rf vendor/*.dist-info
+		rm -rf $(modules_directory)/*.dist-info
 
 # Runs tests, installing relevant dependencies if they're not already present.
 test:
-	pip list | grep -E '^pytest\s' || pip install pytest
-	pip list | grep -E '^pytest-cov\s' || pip install pytest-cov
-	pip list | grep -E '^boto3\s' || pip install boto3
-	pip list | grep -E '^ask_sdk_core\s' || pip install ask_sdk_core
-	PYTHONPATH="$(shell pwd)/$(shell find lambda/* -maxdepth 0 -type d | head -n1)/vendor:${PYTHONPATH}" \
+	pip list | grep -E '^pytest\s'       || pip install pytest
+	pip list | grep -E '^pytest-cov\s'   || pip install pytest-cov
+	pip list | grep -E '^boto3\s'        || pip install boto3
+	pip list | grep -E '^ask-sdk-core\s' || pip install ask_sdk_core
+	PYTHONPATH="$(shell pwd)/$(shell find lambda/* -maxdepth 0 -type d | head -n1)/$(modules_directory):${PYTHONPATH}" \
 		pytest
 
 # Submits coverage to coveralls. Requires COVERALLS_REPO_TOKEN to be available in the environment,

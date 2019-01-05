@@ -24,7 +24,7 @@ DYNAMODB_TABLE = getenv('DYNAMODB_TABLE')
 EXCEPTION_MESSAGE = getenv('EXCEPTION_MESSAGE', 'Sorry, something went wrong.')
 FALLBACK_MESSAGE = getenv('FALLBACK_MESSAGE', 'I\'m not sure exactly what you\'re after.')
 FALLBACK_REPROMPT = getenv('FALLBACK_REPROMPT', 'What would you like me to do?')
-METRO_TRAINS_LINE_ID = int(getenv('METRO_TRAINS_LINE_ID'))
+METRO_TRAINS_LINE_ID = int(getenv('METRO_TRAINS_LINE_ID', 0))
 PRONOUN = getenv('PRONOUN', 'they/their').split('/')
 TIMEZONE = getenv('TIMEZONE')
 
@@ -182,6 +182,10 @@ def get_speech_text_response():
       PRONOUN[0] + "'s currently in " + suburb + ", about " + readable_time_from_home + " away."
     ]
     speech = random.choice(speech_choices)
+
+  # Return early now if we don't have a Metro Trains line ID set.
+  if not METRO_TRAINS_LINE_ID:
+    return speech
 
   # Potentially add some notes on train line performance.
 
