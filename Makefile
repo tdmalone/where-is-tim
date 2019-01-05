@@ -18,7 +18,7 @@ install:
 test:
 	pip list | grep -E '^pytest\s' || pip install pytest
 	pip list | grep -E '^pytest-cov\s' || pip install pytest-cov
-	PYTHONPATH="$(shell pwd)/$(shell find lambda -type d -depth 1 | head -n1)/vendor:${PYTHONPATH}" \
+	PYTHONPATH="$(shell pwd)/$(shell find lambda/* -maxdepth 0 -type d | head -n1)/vendor:${PYTHONPATH}" \
 		pytest
 
 # Prepares for packaging and deployment by removing unneeded folders, and installing the ASK CLI if
