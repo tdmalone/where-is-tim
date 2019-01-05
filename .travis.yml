@@ -4,6 +4,10 @@ language: python
 python:
   - 3.6
 
+before_install:
+  # Install some built-in modules that appear to be missing.
+  - pip install python-dateutil
+
 install:
   - make install
 
