@@ -14,10 +14,12 @@ install:
 		rm -rf venv && \
 		rm -rf vendor/*.dist-info
 
-# Runs tests, installing dependencies if they're not already present.
+# Runs tests, installing relevant dependencies if they're not already present.
 test:
 	pip list | grep -E '^pytest\s' || pip install pytest
 	pip list | grep -E '^pytest-cov\s' || pip install pytest-cov
+	pip list | grep -E '^boto3\s' || pip install boto3
+	pip list | grep -E '^ask_sdk_core\s' || pip install ask_sdk_core
 	PYTHONPATH="$(shell pwd)/$(shell find lambda/* -maxdepth 0 -type d | head -n1)/vendor:${PYTHONPATH}" \
 		pytest
 

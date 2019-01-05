@@ -14,7 +14,7 @@ install:
 script:
   - make test
 
-after_script:
+after_success:
   - make coverage
 
 notifications:
