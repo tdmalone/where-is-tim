@@ -21,6 +21,12 @@ test:
 	PYTHONPATH="$(shell pwd)/$(shell find lambda/* -maxdepth 0 -type d | head -n1)/vendor:${PYTHONPATH}" \
 		pytest
 
+# Submits coverage to coveralls. Requires COVERALLS_REPO_TOKEN to be available in the environment,
+# if not being run in Travis CI or Circle CI.
+coverage:
+	pip list | grep -E '^coveralls\s' || pip install coveralls
+	coveralls
+
 # Prepares for packaging and deployment by removing unneeded folders, and installing the ASK CLI if
 # it is not already present.
 prepare-deploy:
