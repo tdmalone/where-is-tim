@@ -7,7 +7,7 @@ all: install deploy
 install:
 	cd lambda/*/ && \
 		virtualenv venv && \
-		source venv/bin/activate && \
+		. venv/bin/activate && \
 		mkdir -p vendor && \
 		pip install --requirement requirements.txt --target vendor && \
 		deactivate && \
