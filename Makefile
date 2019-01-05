@@ -15,7 +15,9 @@ install:
 		rm -rf vendor/*.dist-info
 
 test:
-	PYTHONPATH="$(shell pwd)/$(shell find lambda -type d -depth 1 | head -n1)/vendor:${PYTHONPATH}" \
+	pip list | grep -E '^pytest\s' || pip install pytest
+	pip list | grep -E '^pytest-cov\s' || pip install pytest-cov
+	PYTHONPATH="$(shell pwd)/$(shell find lambda -depth 1 -type d | head -n1)/vendor:${PYTHONPATH}" \
 		pytest
 
 prepare-deploy:
