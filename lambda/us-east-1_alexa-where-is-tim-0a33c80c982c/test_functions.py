@@ -3,7 +3,7 @@ import json
 
 from os import environ, getenv
 from time import time
-from pytest import fixture, mark
+from pytest import mark
 from datetime import datetime
 from dateutil.tz import tzoffset
 
@@ -13,10 +13,9 @@ environ['METRO_TRAINS_ENDPOINT'] = 'http://localhost/metrotrains'
 
 import functions
 
-@mark.skip(reason="TODO: Need to add mocking of the API endpoint for this")
+@mark.skip(reason="TODO: Need to work out how much to test this")
 def test_alexa_sound_effect():
-  # TODO: functions.alexa_sound_effect()
-  assert True
+  pass
 
 def test_get_event_suburb():
   fake_event = {'event_address': {'S': '123 Main Street, Suburb, STATE'}}

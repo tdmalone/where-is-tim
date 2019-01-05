@@ -1,5 +1,8 @@
 # Where is Tim?
 
+[![Build Status](https://travis-ci.com/tdmalone/where-is-tim.svg?branch=master)](https://travis-ci.com/tdmalone/where-is-tim)
+[![Coverage Status](https://coveralls.io/repos/github/tdmalone/where-is-tim/badge.svg?branch=master)](https://coveralls.io/github/tdmalone/where-is-tim?branch=master)
+
 An experimental Alexa skill that advises my wife when I'm due home from work. All she has to do is say 'Alexa, ask Tim if he's left work yet' or 'Alexa, ask Tim how far away from home he is'.
 
 It runs as a Lambda function on the Python 3.7 runtime, and is powered by the [Alexa Skills Kit (ASK) SDK for Python](https://github.com/alexa/alexa-skills-kit-sdk-for-python) ([full documentation here](https://alexa-skills-kit-python-sdk.readthedocs.io/)).
